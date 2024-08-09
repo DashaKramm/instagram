@@ -39,8 +39,8 @@ class UserDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         user = self.object
         posts = Post.objects.filter(user=user).annotate(
-            likes_count=Count('posts_likes'),
-            comments_count=Count('posts_comments')
+            likes_count=Count('posts_likes', distinct=True),
+            comments_count=Count('posts_comments', distinct=True)
         )
         context['posts'] = posts
         if self.request.user.is_authenticated:

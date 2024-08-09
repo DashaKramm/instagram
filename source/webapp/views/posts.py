@@ -20,8 +20,8 @@ class PostListView(ListView):
         if self.request.user.is_authenticated:
             followed_users = User.objects.filter(followers__follower=self.request.user)
             queryset = Post.objects.filter(user__in=followed_users).order_by('-created_at').annotate(
-                likes_count=Count('posts_likes'),
-                comments_count=Count('posts_comments')
+                likes_count=Count('posts_likes', distinct=True),
+                comments_count=Count('posts_comments', distinct=True)
             )
         else:
             queryset = Post.objects.none()
@@ -73,8 +73,8 @@ class PostDetailView(DetailView):
 
     def get_queryset(self):
         return Post.objects.annotate(
-            likes_count=Count('posts_likes'),
-            comments_count=Count('posts_comments')
+            likes_count=Count('posts_likes', distinct=True),
+            comments_count=Count('posts_comments', distinct=True)
         )
 
     def get_context_data(self, **kwargs):
