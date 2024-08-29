@@ -1,3 +1,5 @@
+from rest_framework import status
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +21,24 @@ class PostViewSet(ModelViewSet):
         if self.request.method in SAFE_METHODS or self.request.user.is_superuser:
             return []
         return [IsOwnerOrReadOnly()]
+
+
+class LikeToggleView(APIView):
+    def post(self, request, *args, pk, action, **kwargs):
+        post = get_object_or_404(Post, pk=pk)
+        user = request.user
+        if action == "like":
+            if not post.like_users.filter(pk=user.pk).exists():
+                post.like_users.add(user)
+                return Response({'likes_count': post.like_users.count()})
+            return Response({'detail': 'You have already liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif action == "unlike":
+            if post.like_users.filter(pk=user.pk).exists():
+                post.like_users.remove(user)
+                return Response({'likes_count': post.like_users.count()})
+            return Response({'detail': 'You have not liked this post yet.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
